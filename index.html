@@ -1,0 +1,286 @@
+<!doctype html>
+<html>
+    <head><title>Grafo PERT(alfa)</title><meta charset="UTF-8">
+      <script src="anychart-bundle.min.js"></script>
+      <script type="text/javascript" src="zepto.min.js"></script>
+        <style>
+         html, body, #container {
+             width: 100%;
+             height: 100%;
+             margin: 0;
+             padding: 0;
+         }
+        </style>
+      <script type="text/javascript">
+$(function(){         
+anychart.onDocumentReady(function () {
+    // data
+    var data = [];
+    localStorage.grafo = (localStorage.grafo || "null");
+    localStorage.zoom = (localStorage.zoom || "10");
+    if (localStorage.grafo === "null") {
+       data[0] = {"id":"1","optimistic":3,"pessimistic":11,"mostLikely":4,"name":"1","fullName":"Actividad A"};
+       data[1] = {"id":"2","optimistic":0,"pessimistic":8,"mostLikely":4,"name":"2","fullName":"Actividad B"};
+       data[2] = {"id":"3","optimistic":1,"pessimistic":9,"mostLikely":2,"name":"3","dependsOn":["1"],"fullName":"Actividad C"};
+       data[3] = {"id":"4","optimistic":2,"pessimistic":10,"mostLikely":3,"name":"4","dependsOn":["1"],"fullName":"Actividad D"};
+       localStorage.grafo = JSON.stringify(data);
+    } else {
+       data = JSON.parse(localStorage.grafo);
+    };
+    $("#formulario").hide();
+    if (confirm("Proyecto nuevo?")) {
+       localStorage.tareas = (prompt("Num. maximo de Actividades:") || "0");
+    } else {
+       localStorage.tareas = data.length;
+    };
+    if (parseInt(localStorage.tareas) > 0) {
+       for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
+          $("#formulario").append('<p>');
+          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3">');
+          $("#formulario").append('<input type="text" id="name'+i+'" value="" required placeholder="Nombre Actividad '+i+'">');
+          $("#formulario").append('<input type="text" id="optim'+i+'" value="" size="5" required placeholder="Optimista">');
+          $("#formulario").append('<input type="text" id="pesim'+i+'" value="" size="5" required placeholder="Pesimista">');
+          $("#formulario").append('<input type="text" id="maspro'+i+'" value="" size="5" required placeholder="M&#225s Probable">');
+          $("#formulario").append('<input type="text" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
+       };
+    };
+    // set filling method for tree
+    var treeData = anychart.data.tree(data, anychart.enums.TreeFillingMethod.AS_TABLE);
+
+    // create PERT chart
+    chart = anychart.pert();
+    // set spacing between milestones
+    chart.horizontalSpacing(localStorage.zoom+'%');
+    // set padding for chart
+    chart.padding([25, 50, 0, 50]);
+    // set data
+    chart.data(treeData);
+
+    // get duration project
+    var duration = Math.ceil(chart.getStat(anychart.enums.Statistics.PERT_CHART_PROJECT_DURATION));
+    // get deviation project
+    var deviation = Math.ceil(chart.getStat(anychart.enums.Statistics.PERT_CHART_CRITICAL_PATH_STANDARD_DEVIATION));
+
+    // set title text
+    var title = chart.title();
+    title.enabled(true);
+    title.text(
+            "Grafo PERT" +
+            "<br>" + "Duraci&#243n estimada del proyecto: " +
+            duration + '&plusmn;' +
+            deviation + ' semanas'
+    ).useHtml(true);
+    title.padding([0, 0, 35, 0]);
+
+    // set settings for tasks
+    var tasks = chart.tasks();
+    // format upper label tasks
+    tasks.upperLabels().textFormatter(function () {
+        return this.item.get('fullName');
+    });
+    // format lower label tasks
+    tasks.lowerLabels().textFormatter(function () {
+        // format time for tasks
+        return timeTask(this.duration);
+    });
+
+    // create tasks tooltip
+    var tasksTooltip = tasks.tooltip();
+    // tooltip settings
+    tasksTooltip.separator().enabled(true);
+    tasksTooltip.titleFormatter(function () {
+        // return fullName from data
+        return this.item.get('fullName');
+    }).title().useHtml('true');
+
+    // set settings for milestones
+    var milestones = chart.milestones();
+    // set milestones color
+    milestones.color('#27959F');
+    // hoverFill color for milestones item
+    milestones.hoverFill(function () {
+        return anychart.color.lighten(this.sourceColor, 0.25);
+    });
+    // set milestones item size
+    milestones.size('6.5%');
+    milestones.tooltip().textFormatter(defuaultMilesoneTooltipTextFormatter);
+
+    // set settings for critical milestones
+    var critMilestones = chart.criticalPath().milestones();
+    // set shape
+    critMilestones.shape('circle');
+    // set color
+    critMilestones.color('#E24B26');
+
+    // set container id for the chart
+    chart.container('container');
+    // initiate chart drawing
+    chart.draw();
+});
+
+function timeTask(duration) {
+    var weeks = 0;
+    var days = 0;
+    var hours = 0;
+
+    if (duration >= 0) {
+        weeks = Math.floor(duration);
+        // days = Math.floor(duration - weeks * 7);
+        // hours = Math.ceil((24 * (duration - weeks * 7 - days)));
+    } else {
+        days = Math.floor(duration - weeks * 7);
+        hours = Math.ceil(24 * (duration - weeks * 7 - days));
+    }
+
+    var weeksPart = weeks != 0 ? 'w:' + weeks + ' ' : '';
+    var daysPart = days != 0 ? 'd:' + days + ' ' : '';
+    var hoursPart = hours != 0 ? 'h:' + hours + ' ' : '';
+
+    return weeksPart + daysPart + hoursPart;
+}
+
+function defuaultMilesoneTooltipTextFormatter() {
+    var result = '';
+    var i = 0;
+    if (this['successors'] && this['successors'].length) {
+        result += 'Successors:';
+        for (i = 0; i < this['successors'].length; i++) {
+            result += '\n - ' + this['successors'][i].get('fullName');
+        }
+        if (this['predecessors'] && this['predecessors'].length)
+            result += '\n\n';
+    }
+    if (this['predecessors'] && this['predecessors'].length) {
+        result += 'Predecessors:';
+        for (i = 0; i < this['predecessors'].length; i++) {
+            result += '\n - ' + this['predecessors'][i].get('fullName');
+        }
+    }
+    return result;
+}
+$("#editar").on('click', function(){
+    $("#container").hide();
+    $("#formulario").show();
+    for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
+       $("#name"+i).val(prompt(i+".- Nombre Actividad:") || $("#name"+i).val());
+       $("#optim"+i).val(prompt(i+".- Optimista:") || $("#optim"+i).val());
+       $("#pesim"+i).val(prompt(i+".- Pesimista:") || $("#pesim"+i).val());
+       $("#maspro"+i).val(prompt(i+".- Más Probable:") || $("#maspro"+i).val());
+       $("#preced"+i).val(prompt(i+".- Prelaciones, separadas por comas:") || $("#preced"+i).val());
+    };
+});
+$("#pintar").on('click', function(){
+    var data = [];
+    for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
+       data[i-1] = {"id":i.toString(10),"optimistic":parseInt($("#optim"+i).val()),"pessimistic":parseInt($("#pesim"+i).val()),"mostLikely":parseInt($("#maspro"+i).val()),"name":i.toString(10),"dependsOn":[$("#preced"+i).val()],"fullName":$("#name"+i).val()};
+       if ($("#preced"+i).val() === "") {
+          data[i-1]["dependsOn"] = null;
+       } else {
+          var cadena = $("#preced"+i).val().match(/[0-9]+/g);
+          data[i-1]["dependsOn"] = cadena;
+       };
+    };
+    if (data.length > 0) {
+       localStorage.grafo = JSON.stringify(data);
+       location.reload();
+    };
+});
+$("#reset").on('click', function(){
+    localStorage.grafo = "null";
+    location.reload();
+});
+$("#cancelar").on('click', function(){
+    $("#formulario").hide();
+    $("#container").show();
+});
+$("#guardar").on('click', function(){
+    var nom = prompt("Nombre del archivo:");
+    if (nom === "" || nom === null) {
+        nom = "grafo";
+    };
+    // grab the content of the form field and place it into a variable
+    var textToWrite = localStorage.grafo;
+    //  create a new Blob (html5 magic) that conatins the data from your form feild
+    var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+    // Specify the name of the file to be saved
+    var fileNameToSaveAs = nom+".json";
+    // create a link for our script to 'click'
+    var downloadLink = document.createElement("a");
+    // supply the name of the file (from the var above)
+    downloadLink.download = fileNameToSaveAs;
+    // provide text for the link. This will be hidden so you
+    // can actually use anything you want.
+    downloadLink.innerHTML = "My Hidden Link";
+    
+    // allow our code to work in webkit & Gecko based browsers
+    // without the need for a if / else block.
+    window.URL = window.URL || window.webkitURL;
+          
+    // Create the link Object.
+    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+    // when link is clicked call a function to remove it from
+    // the DOM in case user wants to save a second file.
+    downloadLink.onclick = destroyClickedElement;
+    // make sure the link is hidden.
+    downloadLink.style.display = "none";
+    // add the link to the DOM
+    document.body.appendChild(downloadLink);
+    
+    // click the new link
+    downloadLink.click();
+});
+
+$("#ampliar").on('click', function(){
+    var z = parseInt(localStorage.zoom) + 1;
+    localStorage.zoom = z.toString(10);
+    location.reload();
+});
+$("#reducir").on('click', function(){
+    var z = parseInt(localStorage.zoom) - 1;
+    localStorage.zoom = z.toString(10);
+    location.reload();
+});
+
+function destroyClickedElement(event) {
+    // remove the link from the DOM
+    document.body.removeChild(event.target);
+};
+
+window.addEventListener('load', evento, false);
+
+function evento() {
+    document.getElementById('archivo').addEventListener('change', cargar, false);
+};
+
+function cargar(ev) {
+    var arch = new FileReader();
+    arch.addEventListener('load',leer,false);
+    arch.readAsText(ev.target.files[0]);
+};
+    
+function leer(ev) {
+    localStorage.grafo = ev.target.result;
+    location.reload();
+};
+});
+      </script>
+    </head>
+  <body>
+     <h3><span id="nuevo">Elije entre las opciones siguientes del Grafo:</span></h3>
+
+     <button type="button" id="editar"> Editar </button>
+     <label>Leer desde Archivo 
+         <input type="file" name="anexo" id="archivo">
+     </label>
+     <div id="formulario">
+         <p><button type="button" id="pintar"> Pintar Grafo </button>
+         <button type="button" id="reset"> Reset </button>
+         <button type="button" id="cancelar"> Cancelar </button>
+     </div>
+     <P><button type="button" id="guardar"> Guardar </button>
+     <button type="button" id="ampliar"> Expandir </button>
+     <button type="button" id="reducir"> Contraer </button>
+     <div id="container"></div>
+  </body>
+</html>
+
