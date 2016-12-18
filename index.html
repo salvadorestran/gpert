@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
-    <head><title>Grafo PERT(alfa)</title><meta charset="UTF-8">
+    <head><title>Grafo PERT(alfa)</title>
+      <meta charset="UTF-8">
+      <link rel="icon" href="etsit.ico">
       <script src="anychart-bundle.min.js"></script>
       <script type="text/javascript" src="zepto.min.js"></script>
         <style>
@@ -16,9 +18,10 @@ $(function(){
 anychart.onDocumentReady(function () {
     // data
     var data = [];
-    localStorage.grafo = (localStorage.grafo || "null");
+    localStorage.grafo = (localStorage.grafo || "0");
     localStorage.zoom = (localStorage.zoom || "10");
-    if (localStorage.grafo === "null") {
+    localStorage.tareas = (localStorage.tareas || "0");
+    if (localStorage.grafo === "0") {
        data[0] = {"id":"1","optimistic":3,"pessimistic":11,"mostLikely":4,"name":"1","fullName":"Actividad A"};
        data[1] = {"id":"2","optimistic":0,"pessimistic":8,"mostLikely":4,"name":"2","fullName":"Actividad B"};
        data[2] = {"id":"3","optimistic":1,"pessimistic":9,"mostLikely":2,"name":"3","dependsOn":["1"],"fullName":"Actividad C"};
@@ -27,16 +30,16 @@ anychart.onDocumentReady(function () {
     } else {
        data = JSON.parse(localStorage.grafo);
     };
-    $("#formulario").hide();
-    if (confirm("Proyecto nuevo?")) {
-       localStorage.tareas = (prompt("Num. maximo de Actividades:") || "0");
+    if (data === null) {
+       alert("=> Editar para introducir los datos");
     } else {
        localStorage.tareas = data.length;
     };
+    $("#formulario").hide();
     if (parseInt(localStorage.tareas) > 0) {
        for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
           $("#formulario").append('<p>');
-          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3">');
+          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
           $("#formulario").append('<input type="text" id="name'+i+'" value="" required placeholder="Nombre Actividad '+i+'">');
           $("#formulario").append('<input type="text" id="optim'+i+'" value="" size="5" required placeholder="Optimista">');
           $("#formulario").append('<input type="text" id="pesim'+i+'" value="" size="5" required placeholder="Pesimista">');
@@ -52,7 +55,7 @@ anychart.onDocumentReady(function () {
     // set spacing between milestones
     chart.horizontalSpacing(localStorage.zoom+'%');
     // set padding for chart
-    chart.padding([25, 50, 0, 50]);
+    chart.padding([25, 10, 0, 10]);
     // set data
     chart.data(treeData);
 
@@ -96,13 +99,13 @@ anychart.onDocumentReady(function () {
     // set settings for milestones
     var milestones = chart.milestones();
     // set milestones color
-    milestones.color('#27959F');
+    milestones.color('#2795FF');
     // hoverFill color for milestones item
     milestones.hoverFill(function () {
         return anychart.color.lighten(this.sourceColor, 0.25);
     });
     // set milestones item size
-    milestones.size('6.5%');
+    milestones.size('4.5%');
     milestones.tooltip().textFormatter(defuaultMilesoneTooltipTextFormatter);
 
     // set settings for critical milestones
@@ -110,7 +113,7 @@ anychart.onDocumentReady(function () {
     // set shape
     critMilestones.shape('circle');
     // set color
-    critMilestones.color('#E24B26');
+    critMilestones.color('#F24B26');
 
     // set container id for the chart
     chart.container('container');
@@ -158,16 +161,21 @@ function defuaultMilesoneTooltipTextFormatter() {
     }
     return result;
 }
+$("#borrar").on('click', function(){
+    $("#container").hide();
+    $("#formulario").show();
+    if (confirm("VAS A BORRAR EL GRAFO ACTUAL !!!\nEstás seguro?")) {
+       localStorage.tareas = (prompt("Número total de Actividades:") || "0");
+       localStorage.grafo = "null";
+       location.reload();
+    } else {
+       $("#formulario").hide();
+       $("#container").show();
+    };
+});
 $("#editar").on('click', function(){
     $("#container").hide();
     $("#formulario").show();
-    for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
-       $("#name"+i).val(prompt(i+".- Nombre Actividad:") || $("#name"+i).val());
-       $("#optim"+i).val(prompt(i+".- Optimista:") || $("#optim"+i).val());
-       $("#pesim"+i).val(prompt(i+".- Pesimista:") || $("#pesim"+i).val());
-       $("#maspro"+i).val(prompt(i+".- Más Probable:") || $("#maspro"+i).val());
-       $("#preced"+i).val(prompt(i+".- Prelaciones, separadas por comas:") || $("#preced"+i).val());
-    };
 });
 $("#pintar").on('click', function(){
     var data = [];
@@ -185,11 +193,11 @@ $("#pintar").on('click', function(){
        location.reload();
     };
 });
-$("#reset").on('click', function(){
-    localStorage.grafo = "null";
+$("#demo").on('click', function(){
+    localStorage.grafo = "0";
     location.reload();
 });
-$("#cancelar").on('click', function(){
+$("#volver").on('click', function(){
     $("#formulario").hide();
     $("#container").show();
 });
@@ -268,17 +276,18 @@ function leer(ev) {
   <body>
      <h3><span id="nuevo">Elije entre las opciones siguientes del Grafo:</span></h3>
 
+     <button type="button" id="borrar"> Nuevo </button>
      <button type="button" id="editar"> Editar </button>
-     <label>Leer desde Archivo 
+     <button type="button" id="guardar"> Descargar </button>
+     <label>Cargar Archivo: 
          <input type="file" name="anexo" id="archivo">
      </label>
      <div id="formulario">
-         <p><button type="button" id="pintar"> Pintar Grafo </button>
-         <button type="button" id="reset"> Reset </button>
-         <button type="button" id="cancelar"> Cancelar </button>
+         <p><button type="button" id="demo"> Demo </button>
+         <button type="button" id="pintar"> Pintar Grafo </button>
+         <button type="button" id="volver"> Volver </button>
      </div>
-     <P><button type="button" id="guardar"> Guardar </button>
-     <button type="button" id="ampliar"> Expandir </button>
+     <p><button type="button" id="ampliar"> Expandir </button>
      <button type="button" id="reducir"> Contraer </button>
      <div id="container"></div>
   </body>
