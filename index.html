@@ -12,6 +12,24 @@
              margin: 0;
              padding: 0;
          }
+         table th:first-child {
+             width: 75px;
+         }
+         table th:nth-child(2) {
+             width: 230px;
+         }
+         table th:nth-child(3) {
+             width: 95px;
+         }
+         table th:nth-child(4) {
+             width: 95px;
+         }     
+         table th:nth-child(5) {
+             width: 95px;
+         }
+         table th:last-child {
+             width: 227px;
+         }
         </style>
       <script type="text/javascript">
 $(function(){         
@@ -30,13 +48,9 @@ anychart.onDocumentReady(function () {
     } else {
        data = JSON.parse(localStorage.grafo);
     };
+    $("#formulario").hide();
     if (data === null) {
        alert("=> Editar para introducir los datos");
-    } else {
-       localStorage.tareas = data.length;
-    };
-    $("#formulario").hide();
-    if (parseInt(localStorage.tareas) > 0) {
        for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
           $("#formulario").append('<p>');
           $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
@@ -45,6 +59,21 @@ anychart.onDocumentReady(function () {
           $("#formulario").append('<input type="text" id="pesim'+i+'" value="" size="5" required placeholder="Pesimista">');
           $("#formulario").append('<input type="text" id="maspro'+i+'" value="" size="5" required placeholder="M&#225s Probable">');
           $("#formulario").append('<input type="text" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
+       };
+    } else {
+       localStorage.tareas = data.length;
+       for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
+          $("#formulario").append('<p>');
+          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
+          $("#formulario").append('<input type="text" id="name'+i+'" value="'+data[i-1]["fullName"]+'" required placeholder="Nombre Actividad '+i+'">');
+          $("#formulario").append('<input type="text" id="optim'+i+'" value="'+data[i-1]["optimistic"]+'" size="5" required placeholder="Optimista">');
+          $("#formulario").append('<input type="text" id="pesim'+i+'" value="'+data[i-1]["pessimistic"]+'" size="5" required placeholder="Pesimista">');
+          $("#formulario").append('<input type="text" id="maspro'+i+'" value="'+data[i-1]["mostLikely"]+'" size="5" required placeholder="M&#225s Probable">');
+          if (data[i-1]["dependsOn"]) {
+             $("#formulario").append('<input type="text" id="preced'+i+'" value="'+data[i-1]["dependsOn"]+'" placeholder="Prelaciones, entre comas">');
+          } else {
+             $("#formulario").append('<input type="text" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
+          };
        };
     };
     // set filling method for tree
@@ -113,7 +142,7 @@ anychart.onDocumentReady(function () {
     // set shape
     critMilestones.shape('circle');
     // set color
-    critMilestones.color('#F24B26');
+    critMilestones.color('#FF0000');
 
     // set container id for the chart
     chart.container('container');
@@ -286,9 +315,19 @@ function leer(ev) {
          <p><button type="button" id="demo"> Demo </button>
          <button type="button" id="pintar"> Pintar Grafo </button>
          <button type="button" id="volver"> Volver </button>
+         <table border="1">
+            <tr>
+               <th>Id</th>
+               <th>Nombre</th>
+               <th>Optimista</th>
+               <th>Pesimista</th>
+               <th>M&#225s Prob.</th>
+               <th>Prelaciones</th>
+            </tr>
+         </table>
      </div>
-     <p><button type="button" id="ampliar"> Expandir </button>
-     <button type="button" id="reducir"> Contraer </button>
+     <p><button type="button" id="ampliar"> + Ancho </button>
+     <button type="button" id="reducir"> - Ancho </button>
      <div id="container"></div>
   </body>
 </html>
