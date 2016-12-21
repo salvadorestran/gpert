@@ -1,6 +1,6 @@
 <!doctype html>
 <html>
-    <head><title>Grafo PERT(alfa)</title>
+    <head><title>GPERT(&#223)</title>
       <meta charset="UTF-8">
       <link rel="icon" href="etsit.ico">
       <script src="anychart-bundle.min.js"></script>
@@ -45,6 +45,24 @@
          table th:last-child {
              width: 227px;
          }
+         .col1 {
+             width: 8.8%;
+         }
+         .col2 {
+             width: 26.5%;
+         }
+         .col3 {
+             width: 10.8%;
+         }
+         .col4 {
+             width: 10.8%;
+         }
+         .col5 {
+             width: 10.8%;
+         }
+         .col6 {
+             width: 26.5%;
+         }
         </style>
       <script type="text/javascript">
 $(function(){         
@@ -68,26 +86,26 @@ anychart.onDocumentReady(function () {
        alert("=> Editar para introducir los datos");
        for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
           $("#formulario").append('<p>');
-          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
-          $("#formulario").append('<input type="text" id="name'+i+'" value="" required placeholder="Nombre Actividad '+i+'">');
-          $("#formulario").append('<input type="text" id="optim'+i+'" value="" size="5" required placeholder="Optimista">');
-          $("#formulario").append('<input type="text" id="pesim'+i+'" value="" size="5" required placeholder="Pesimista">');
-          $("#formulario").append('<input type="text" id="maspro'+i+'" value="" size="5" required placeholder="M&#225s Probable">');
-          $("#formulario").append('<input type="text" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
+          $("#formulario").append('<input type="text" class="col1" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
+          $("#formulario").append('<input type="text" class="col2" id="name'+i+'" value="" required placeholder="Nombre Actividad '+i+'">');
+          $("#formulario").append('<input type="text" class="col3" id="optim'+i+'" value="" size="5" required placeholder="Optimista">');
+          $("#formulario").append('<input type="text" class="col4" id="pesim'+i+'" value="" size="5" required placeholder="Pesimista">');
+          $("#formulario").append('<input type="text" class="col5" id="maspro'+i+'" value="" size="5" required placeholder="M&#225s Probable">');
+          $("#formulario").append('<input type="text" class="col6" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
        };
     } else {
        localStorage.tareas = data.length;
        for (var i = 1; i <= parseInt(localStorage.tareas); i++) {
           $("#formulario").append('<p>');
-          $("#formulario").append('<input type="text" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
-          $("#formulario").append('<input type="text" id="name'+i+'" value="'+data[i-1]["fullName"]+'" required placeholder="Nombre Actividad '+i+'">');
-          $("#formulario").append('<input type="text" id="optim'+i+'" value="'+data[i-1]["optimistic"]+'" size="5" required placeholder="Optimista">');
-          $("#formulario").append('<input type="text" id="pesim'+i+'" value="'+data[i-1]["pessimistic"]+'" size="5" required placeholder="Pesimista">');
-          $("#formulario").append('<input type="text" id="maspro'+i+'" value="'+data[i-1]["mostLikely"]+'" size="5" required placeholder="M&#225s Probable">');
+          $("#formulario").append('<input type="text" class="col1" id="id'+i+'" value="'+i+'" size="3" placeholder='+i+'>');
+          $("#formulario").append('<input type="text" class="col2" id="name'+i+'" value="'+data[i-1]["fullName"]+'" required placeholder="Nombre Actividad '+i+'">');
+          $("#formulario").append('<input type="text" class="col3" id="optim'+i+'" value="'+data[i-1]["optimistic"]+'" size="5" required placeholder="Optimista">');
+          $("#formulario").append('<input type="text" class="col4" id="pesim'+i+'" value="'+data[i-1]["pessimistic"]+'" size="5" required placeholder="Pesimista">');
+          $("#formulario").append('<input type="text" class="col5" id="maspro'+i+'" value="'+data[i-1]["mostLikely"]+'" size="5" required placeholder="M&#225s Probable">');
           if (data[i-1]["dependsOn"]) {
-             $("#formulario").append('<input type="text" id="preced'+i+'" value="'+data[i-1]["dependsOn"]+'" placeholder="Prelaciones, entre comas">');
+             $("#formulario").append('<input type="text" class="col6" id="preced'+i+'" value="'+data[i-1]["dependsOn"]+'" placeholder="Prelaciones, entre comas">');
           } else {
-             $("#formulario").append('<input type="text" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
+             $("#formulario").append('<input type="text" class="col6" id="preced'+i+'" value="" placeholder="Prelaciones, entre comas">');
           };
        };
     };
