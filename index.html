@@ -24,8 +24,9 @@
              font-size: medium;
          }
          table {
-             width: 100%;
+             width: 99%;
              background-color: #FFFF00;
+             font-size: medium;
          }
          table th:first-child {
              width: 72px;
@@ -72,6 +73,7 @@ anychart.onDocumentReady(function () {
     localStorage.grafo = (localStorage.grafo || "0");
     localStorage.zoom = (localStorage.zoom || "10");
     localStorage.tareas = (localStorage.tareas || "0");
+    localStorage.posicion = (localStorage.posicion || "0");
     if (localStorage.grafo === "0") {
        data[0] = {"id":"1","optimistic":3,"pessimistic":11,"mostLikely":4,"name":"1","fullName":"Actividad A"};
        data[1] = {"id":"2","optimistic":0,"pessimistic":8,"mostLikely":4,"name":"2","fullName":"Actividad B"};
@@ -117,7 +119,7 @@ anychart.onDocumentReady(function () {
     // set spacing between milestones
     chart.horizontalSpacing(localStorage.zoom+'%');
     // set padding for chart
-    chart.padding([25, 10, 0, 10]);
+    chart.padding([25, 50+parseInt(localStorage.posicion), 50, 50-parseInt(localStorage.posicion)]);
     // set data
     chart.data(treeData);
 
@@ -310,6 +312,20 @@ $("#reducir").on('click', function(){
     localStorage.zoom = z.toString(10);
     location.reload();
 });
+$("#derecha").on('click', function(){
+    var x = parseInt(localStorage.posicion) - 100;
+    localStorage.posicion = x.toString(10);
+    location.reload();
+});
+$("#centro").on('click', function(){
+    localStorage.posicion = "0";
+    location.reload();
+});
+$("#izquierda").on('click', function(){
+    var x = parseInt(localStorage.posicion) + 100;
+    localStorage.posicion = x.toString(10);
+    location.reload();
+});
 
 function destroyClickedElement(event) {
     // remove the link from the DOM
@@ -361,6 +377,9 @@ function leer(ev) {
      </div>
      <p><button type="button" id="ampliar"> + Ancho </button>
      <button type="button" id="reducir"> - Ancho </button>
+     <button type="button" id="izquierda"> &#60&#60 </button>
+     <button type="button" id="centro"> &#164 </button>
+     <button type="button" id="derecha"> &#62&#62 </button>
      <div id="container"></div>
   </body>
 </html>
